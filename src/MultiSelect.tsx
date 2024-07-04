@@ -35,7 +35,7 @@ export default function MultiSelect( { selectedOptions, setSelectedOptions, call
             >
               {({ selected }) => (
                 <>
-                  <span className={`${selected ? 'font-medium' : 'font-normal'}`} key={selected}>
+                  <span className={`${selected ? 'font-medium' : 'font-normal'}`}>
                     {option.name}
                   </span>
                 </>
