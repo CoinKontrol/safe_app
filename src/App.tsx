@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 
@@ -14,32 +14,63 @@ import TokenListDropdown from './TokenListDropdown.tsx'
 import { 
     c, 
     processPermissions, 
-    checkIntegrity 
+    checkIntegrity,
+    fetchRolesMod
 } from "zodiac-roles-sdk";
-
-//import {
-//  Permission,
-//  PermissionSet,
-//  checkIntegrity,
-//  processPermissions,
-//  chains,
-//  fetchRolesMod,
-//  ChainId,
-//} from "zodiac-roles-sdk";
 
 function App() {
   const [count, setCount] = useState(0)
-
   const { sdk, connected, safe } = useSafeAppsSDK();
-
   const [selectedOptions, setSelectedOptions] = useState([]);
-
-  const [permissions, setPermissions] = useState([]);
   const [erc20Permissions, setErc20Permissions] = useState([]);
   const [token0, setToken0] = useState({id: 0, address: "", name: "Select Token 0"});
   const [token1, setToken1] = useState({id: 1, address: "", name: "Select Token 1"});
+  const [roleMod, setRoleMod] = useState(null);
 
+  const ZODIAC_ROLES_APP_PROXY = "https://cors-proxy-dawn-grass-8811.fly.dev/https://roles.gnosisguild.org";
   const ZODIAC_ROLES_APP = "https://roles.gnosisguild.org";
+  const UNISWAP_NFT_ADDRESS = "0xC36442b4a4522E871399CD717aBDD847Ab11FE88"
+
+
+  const QUERY = `
+    query RolesMod($avatar: String) {
+      rolesModifiers(where:{avatar: $avatar}){
+        id
+      }
+    }
+  `
+
+  console.log(roleMod)
+
+  useEffect(() => {
+    async function fetchRolesMod() {
+        const res = await fetch("https://api.studio.thegraph.com/proxy/23167/zodiac-roles-arbitrum-one/v2.2.3", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            query: QUERY,
+            variables: { avatar: safe.safeAddress},
+            operationName: "RolesMod",
+          }),
+        })
+
+      const { data, error, errors } = await res.json()
+
+      const rolesModifiers = data.rolesModifiers.map((role) => {
+        return role.id
+      })
+
+      if (rolesModifiers.length > 0) {
+        setRoleMod(rolesModifiers[rolesModifiers.length - 1])
+      }
+    }
+
+    if (safe && safe.safeAddress) {
+        fetchRolesMod()
+    }
+  }, [safe])
 
   const handleTokenApprovePermission = (option) => {
     const erc20Permissions = option.map((token) => {
@@ -47,7 +78,7 @@ function App() {
           targetAddress: token.address as `0x${string}`,
           signature: "approve(address,uint256)",
           condition: c.calldataMatches(
-            ["0xC36442b4a4522E871399CD717aBDD847Ab11FE88"],
+            [UNISWAP_NFT_ADDRESS],
             ["address", "uint256"]
           )
         }
@@ -57,20 +88,15 @@ function App() {
   }
 
   const postPermissions = async (permissions) => {
-    console.log(permissions);
-
     const awaitedPermissions = await Promise.all(permissions);
     const { targets, annotations } = processPermissions(awaitedPermissions);
 
     checkIntegrity(targets);
   
-    const res = await fetch(`${ZODIAC_ROLES_APP}/api/permissions`, {
+    const res = await fetch(`${ZODIAC_ROLES_APP_PROXY}/api/permissions`, {
       method: "POST",
-      mode: 'no-cors',
       body: JSON.stringify({ targets, annotations }),
-    }).then((res) => res.json());
-
-    console.log(res)
+    })
 
     const json = (await res.json()) as any;
     const { hash } = json;
@@ -85,15 +111,15 @@ function App() {
 
   const handlePermissions = async () => {
     const mint = {
-      targetAddress: "0xC36442b4a4522E871399CD717aBDD847Ab11FE88" as `0x${string}`,
+      targetAddress: UNISWAP_NFT_ADDRESS as `0x${string}`,
       signature: "mint((address,address,uint24,int24,int24,uint256,uint256,uint256,uint256,address,uint256))",
       condition: c.calldataMatches(
-        [ { token0: token0 , token1: token1, fee: 500 } ],
+        [ { token0: token0.address , token1: token1.address, fee: 500 } ],
         ['tuple(address token0, address token1, uint24 fee, int24 tickLower, int24 tickUpper, uint256 amount0Desired, uint256 amount1Desired, uint256 amount0Min, uint256 amount1Min, address recipient, uint256 deadline)']
       )
     }
     const increaseLiquidity = {
-      targetAddress: "0xC36442b4a4522E871399CD717aBDD847Ab11FE88" as `0x${string}`,
+      targetAddress: UNISWAP_NFT_ADDRESS as `0x${string}`,
       signature: "increaseLiquidity((uint256,uint256,uint256,uint256,uint256,uint256))",
       condition: c.calldataMatches(
         [ { tokenId: c.avatarIsOwnerOfErc721 } ],
@@ -103,7 +129,7 @@ function App() {
     }
 
     const decreaseLiquidity = {
-      targetAddress: "0xC36442b4a4522E871399CD717aBDD847Ab11FE88" as `0x${string}`,
+      targetAddress: UNISWAP_NFT_ADDRESS as `0x${string}`,
       signature: "decreaseLiquidity((uint256,uint128,uint256,uint256,uint256))",
       condition: c.calldataMatches(
         [ { tokenId: c.avatarIsOwnerOfErc721 } ],
@@ -111,7 +137,7 @@ function App() {
       )
     }
     const collect ={
-      targetAddress: "0xC36442b4a4522E871399CD717aBDD847Ab11FE88" as `0x${string}`,
+      targetAddress: UNISWAP_NFT_ADDRESS as `0x${string}`,
       signature: "collect((uint256,address,uint128,uint128))",
       condition: c.calldataMatches(
         [ { recipient: c.avatar } ],
@@ -119,21 +145,16 @@ function App() {
       )
     }
 
-    setPermissions(erc20Permissions)
+    const permissions = [...erc20Permissions, collect, decreaseLiquidity, mint, increaseLiquidity]
 
     const hash = await postPermissions(permissions);
 
-    console.log("hash", hash);
-
-    const modArg = "arb1:0x59074D4d4914de8576B2eddBACb90f050942f741";
+    const modArg = `arb1:${roleMod}`;
     const roleArg = "position_management";
     const diffUrl = `${ZODIAC_ROLES_APP}/${modArg}/roles/${roleArg}/diff/${hash}`;
     const chainPrefix = "arb1";
     const owner = safe.safeAddress;
-
     const safeUrl = `https://app.safe.global/apps/open?safe=${chainPrefix}:${owner}&appUrl=${encodeURIComponent(diffUrl)}`;
-
-    console.log("safeUrl", safeUrl);
 
     window.open(safeUrl);
   }
