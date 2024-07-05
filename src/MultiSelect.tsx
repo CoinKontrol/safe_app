@@ -1,5 +1,4 @@
 import { Listbox } from '@headlessui/react';
-import { CheckIcon } from '@heroicons/react/20/solid';
 
 const options = [
   { id: 1, address: "0x912CE59144191C1204E64559FE8253a0e49E6548", name: 'ARB' },
