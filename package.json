@@ -10,12 +10,17 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@gnosis.pm/zodiac": "^4.0.3",
     "@headlessui/react": "^2.1.1",
     "@heroicons/react": "^2.1.4",
+    "@safe-global/safe-apps-provider": "^0.18.3",
     "@safe-global/safe-apps-react-sdk": "^4.7.2",
+    "@safe-global/safe-deployments": "^1.37.1",
     "clsx": "^2.1.1",
+    "ethers": "^6.13.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "viem": "^2.17.1",
     "zodiac-roles-sdk": "^2.12.5"
   },
   "devDependencies": {
