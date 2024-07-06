@@ -14,7 +14,7 @@ import {
   keccak256,
 } from "ethers";
 
-type JsonRpcProvider = ethers.providers.JsonRpcProvider
+type BrowserProvider = ethers.BrowserProvider
 
 const ROLES_MASTER_COPY_ADDRESS = "0x9646fDAD06d3e24444381f44362a3B0eB343D337"
 const MODULE_PROXY_FACTORY_ADDRESS = "0x000000000000aDdB49795b0f9bA5BC298cDda236"
@@ -44,12 +44,9 @@ const getModuleFactoryAndMasterCopy = (
 
 const deployAndSetUpModule = async (
   moduleName,
-  setupArgs: {
-    types: Array;
-    values: Array;
-  },
-  provider: Provider,
-  saltNonce: string
+  setupArgs,
+  provider,
+  saltNonce
 ): Promise<{
   transaction: { data: string; to: string; value: bigint };
   expectedModuleAddress: string;
@@ -163,7 +160,7 @@ export function enableModule(safeAddress: string, module: string) {
 }
 
 export async function addMember(
-    provider: JsonRpcProvider,
+    provider: BrowserProvider,
     roleModAddress: string,
     roleKey: string,
     account: string
@@ -183,7 +180,7 @@ export async function addMember(
 }
 
 export async function deployRolesV2Modifier(
-  provider: JsonRpcProvider,
+  provider: BrowserProvider,
   safeAddress: string,
   args: RolesV2ModifierParams,
 ) {
