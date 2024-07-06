@@ -48,7 +48,7 @@ const deployAndSetUpModule = async (
   provider,
   saltNonce
 ): Promise<{
-  transaction: { data: string; to: string; value: bigint };
+  transaction: { data: string; to: string; value: string };
   expectedModuleAddress: string;
 }> => {
 
@@ -93,13 +93,10 @@ export const calculateProxyAddress = async (
 };
 
 const getDeployAndSetupTx = async (
-  moduleFactory: Contract,
-  moduleMastercopy: Contract,
-  setupArgs: {
-    types: Array;
-    values: Array;
-  },
-  saltNonce: string
+  moduleFactory,
+  moduleMastercopy,
+  setupArgs,
+  saltNonce
 ) => {
   const encodedInitParams = AbiCoder.defaultAbiCoder().encode(
     setupArgs.types,
@@ -160,10 +157,10 @@ export function enableModule(safeAddress: string, module: string) {
 }
 
 export async function addMember(
-    provider: BrowserProvider,
-    roleModAddress: string,
-    roleKey: string,
-    account: string
+    provider,
+    roleModAddress,
+    roleKey,
+    account
 ) {
 
   const rolesContract = new Contract(
