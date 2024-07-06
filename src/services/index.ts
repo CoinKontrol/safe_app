@@ -139,11 +139,11 @@ const getDeployAndSetupTx = async (
 };
 
 export const buildTransaction = (
-  iface: Interface,
-  to: string,
-  method: string,
-  params: [],
-  value?: string,
+  iface,
+  to,
+  method,
+  params,
+  value
 ) => {
   return {
     to,
