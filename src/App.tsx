@@ -25,7 +25,7 @@ import {
 } from "./services"
 
 function App() {
-  const { sdk, safe, provider } = useSafeAppsSDKWithProvider()
+  const { sdk, safe, connected, provider } = useSafeAppsSDKWithProvider()
 
   const [selectedOptions, setSelectedOptions] = useState([]);
   const [erc20Permissions, setErc20Permissions] = useState([]);
@@ -163,6 +163,16 @@ function App() {
     const safeUrl = `https://app.safe.global/apps/open?safe=${chainPrefix}:${owner}&appUrl=${encodeURIComponent(diffUrl)}`;
 
     window.open(safeUrl);
+  }
+
+  if (!safe || !connected) {
+    return (
+      <div className="bg-white text-center mt-10">
+          <h2 className="text-4xl tracking-tight text-gray-900 sm:text-6xl mb-8">Coin<span className="font-bold">Kontrol</span></h2>
+          <p className="mb-10 text-gray-500 text-lg leading-relaxed">This is a SAFE app that does not work outside the SAFE environment. <br/> Please open it from your SAFE account.</p>
+          <img src={illustration} alt="CoinKontrol" className="rounded-2xl mx-auto" width={500}/>
+      </div>
+    )
   }
 
   if (roles && roles.length > 0) {
