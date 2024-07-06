@@ -37,11 +37,7 @@ function App() {
   const UNISWAP_NFT_ADDRESS = "0xC36442b4a4522E871399CD717aBDD847Ab11FE88"
   const MULTISEND_141 = "0x38869bf66a61cF6bDB996A6aE40D5853Fd43B526" // used in latest Safes
   const MULTISEND_CALLONLY_141 = "0x9641d764fc13c8B624c04430C7356C1C7C8102e2" // used in latest Safes
-
-  const [params, setParams] = useState<RolesV2ModifierParams>({
-    target: safe.safeAddress,
-    multisend: [MULTISEND_141, MULTISEND_CALLONLY_141],
-  })
+  const [params, setParams] = useState(null)
 
   useEffect(() => {
     async function goFetchRolesMod() {
@@ -53,14 +49,13 @@ function App() {
         setRoleMod(roleMod)
         setRoles(roleMod.roles)
       }
-
     }
 
     if (safe && safe.safeAddress) {
-        setParams({ ...params, target: safe.safeAddress })
+        setParams({target: safe.safeAddress, multisend: [MULTISEND_141, MULTISEND_CALLONLY_141] })
         goFetchRolesMod()
     }
-  }, [safe, params])
+  }, [safe])
 
   const handleTokenApprovePermission = (option) => {
     const erc20Permissions = option.map((token) => {
