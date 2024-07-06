@@ -8,6 +8,8 @@ import clsx from 'clsx'
 import MultiSelect from './MultiSelect.tsx'
 import TokenListDropdown from './TokenListDropdown.tsx'
 
+import illustration from './assets/illustration.jpg'
+
 import { 
     c, 
     processPermissions, 
@@ -165,8 +167,8 @@ function App() {
 
   if (roles && roles.length > 0) {
     return (
-      <div className="w-full p-8 bg-white">
-        <div className="max-w-3xl">
+      <div className="flex p-8 bg-white">
+        <div className="w-2/3 mr-8 ml-8 mt-8">
           <h2 className="text-4xl tracking-tight text-gray-900 sm:text-6xl">Coin<span className="font-bold">Kontrol</span></h2>
 
             <button
@@ -203,15 +205,17 @@ function App() {
           ))}
 
         </div>
+        <div className="mt-8">
+          <img src={illustration} alt="CoinKontrol" className="rounded-2xl" width={500}/>
+        </div>
       </div>
     )
   }
 
   if (!roleMod) {
     return (
-      <div className="w-full p-8 bg-white">
-        <div className="max-w-lg">
-
+      <div className="flex p-8 bg-white">
+        <div className="w-2/3 ml-8 mr-8 mt-8">
           <h2 className="text-4xl tracking-tight text-gray-900 sm:text-6xl">Coin<span className="font-bold">Kontrol</span></h2>
 
           <p className="mt-3 mb-3 text-lg leading-8 text-gray-600">
@@ -228,13 +232,16 @@ function App() {
           
 
         </div>
+        <div className="mt-8">
+          <img src={illustration} alt="CoinKontrol" className="rounded-2xl" width={500}/>
+        </div>
       </div>
       )
   }
 
   return (
-    <div className="w-full p-8 bg-white">
-      <div className="max-w-lg">
+    <div className="flex p-8 bg-white">
+      <div className="w-2/3 ml-8 mt-8 mr-8">
         <h2 className="text-4xl tracking-tight text-gray-900 sm:text-6xl">Coin<span className="font-bold">Kontrol</span></h2>
 
         <p className="mt-3 mb-3 text-lg leading-8 text-gray-600">
@@ -356,7 +363,9 @@ function App() {
             Apply Role
             </button>
         </div>
-
+      </div>
+      <div className="mt-8">
+        <img src={illustration} alt="CoinKontrol" className="rounded-2xl" width={500}/>
       </div>
     </div>
   )
