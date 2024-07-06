@@ -32,7 +32,7 @@ function App() {
   const [roleMod, setRoleMod] = useState(null);
   const [roles, setRoles] = useState(null);
 
-  const ZODIAC_ROLES_APP_PROXY = "https://cors-proxy-dawn-grass-8811.fly.dev/https://roles.gnosisguild.org";
+  const ZODIAC_ROLES_APP_PROXY = "https://cors-proxy-withered-surf-4552.fly.dev/https://roles.gnosisguild.org";
   const ZODIAC_ROLES_APP = "https://roles.gnosisguild.org";
   const UNISWAP_NFT_ADDRESS = "0xC36442b4a4522E871399CD717aBDD847Ab11FE88"
   const MULTISEND_141 = "0x38869bf66a61cF6bDB996A6aE40D5853Fd43B526" // used in latest Safes
@@ -220,7 +220,7 @@ function App() {
           <h2 className="text-4xl tracking-tight text-gray-900 sm:text-6xl">Coin<span className="font-bold">Kontrol</span></h2>
 
           <p className="mt-3 mb-3 text-lg leading-8 text-gray-600">
-            No role modifier found
+            No role modifier found. The Roles Modifier is a Safe module that once installed in your Safe, it allows you to create and manage roles for your Safe.
           </p>
 
             <button
@@ -228,7 +228,7 @@ function App() {
                 onClick={handleAddRolesModifier}
                 className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
             >
-            Add Role Modifier
+            Add Roles Modifier
             </button>
           
 
