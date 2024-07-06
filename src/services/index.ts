@@ -142,13 +142,12 @@ export const buildTransaction = (
   iface,
   to,
   method,
-  params,
-  value
+  params
 ) => {
   return {
     to,
     data: iface.encodeFunctionData(method, params),
-    value: value || "0",
+    value: "0",
   }
 }
 

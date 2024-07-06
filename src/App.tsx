@@ -79,7 +79,7 @@ function App() {
 
   const handleAddRolesModifier = async () => {
     try {
-      const txs = await deployRolesV2Modifier(provider, safe.safeAddress, safe.chainId, params)
+      const txs = await deployRolesV2Modifier(provider, safe.safeAddress, params)
       console.log(txs)
       await sdk.txs.send({ txs })
     } catch (error) {
