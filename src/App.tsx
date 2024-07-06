@@ -255,8 +255,10 @@ function App() {
         <h2 className="text-4xl tracking-tight text-gray-900 sm:text-6xl">Coin<span className="font-bold">Kontrol</span></h2>
 
         <p className="mt-3 mb-3 text-lg leading-8 text-gray-600">
-          Anim aute id magna aliqua ad ad non deserunt sunt. Qui irure qui lorem cupidatat commodo. Elit sunt amet
-          fugiat veniam occaecat fugiat aliqua.
+          The following permissions are a preset for allowing a trustless third party to interact with UniswapV3 on your behalf.
+          You allow the third party to mint, collect, increase and decrease liquidity on your behalf.
+          After you create the preset you will be able to designate EOA or smart accounts as members of the role. The members
+          are accounts that can execute the permissions associated with the role.
         </p>
 
         <h3 className="text-lg mb-4 font-bold">UniswapV3 Role</h3>
