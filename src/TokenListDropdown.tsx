@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Label, Listbox, ListboxButton, ListboxOption, ListboxOptions } from '@headlessui/react'
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid'
 
@@ -17,7 +16,7 @@ export default function TokenListDropdown({
 
   return (
     <Listbox value={selected} onChange={setSelected}>
-      {({ open }) => (
+      {() => (
         <>
           <Label className="block text-sm font-medium leading-6 text-gray-900">{label_text}</Label>
           <div className="relative mt-2">

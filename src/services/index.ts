@@ -8,8 +8,6 @@ import { abi as SafeAbi } from "@safe-global/safe-deployments/dist/assets/v1.3.0
 
 import {
   Contract,
-  Signer,
-  Provider,
   getCreate2Address,
   AbiCoder,
   solidityPackedKeccak256,
@@ -22,9 +20,8 @@ const ROLES_MASTER_COPY_ADDRESS = "0x9646fDAD06d3e24444381f44362a3B0eB343D337"
 const MODULE_PROXY_FACTORY_ADDRESS = "0x000000000000aDdB49795b0f9bA5BC298cDda236"
 
 const getModuleFactoryAndMasterCopy = (
-  moduleName: T,
-  provider: Provider,
-  chainId: SupportedNetworks
+  moduleName,
+  provider
 ) => {
    
   const moduleMastercopy = new Contract(
@@ -46,13 +43,12 @@ const getModuleFactoryAndMasterCopy = (
 };
 
 const deployAndSetUpModule = async (
-  moduleName: any,
+  moduleName,
   setupArgs: {
-    types: Array<string>;
-    values: Array<any>;
+    types: Array;
+    values: Array;
   },
   provider: Provider,
-  chainId: number,
   saltNonce: string
 ): Promise<{
   transaction: { data: string; to: string; value: bigint };
@@ -61,14 +57,13 @@ const deployAndSetUpModule = async (
 
   const { moduleFactory, moduleMastercopy } = getModuleFactoryAndMasterCopy(
     moduleName,
-    provider,
-    chainId
+    provider
   );
 
   //https://github.com/gnosisguild/zodiac/blob/1b16aca64f97521edd68534961686277d1f531f6/sdk/factory/moduleDeployer.ts#L112
   return getDeployAndSetupTx(
-    moduleFactory as unknown as Contract,
-    moduleMastercopy as unknown as Contract,
+    moduleFactory,
+    moduleMastercopy,
     setupArgs,
     saltNonce
   );
@@ -104,8 +99,8 @@ const getDeployAndSetupTx = async (
   moduleFactory: Contract,
   moduleMastercopy: Contract,
   setupArgs: {
-    types: Array<string>;
-    values: Array<any>;
+    types: Array;
+    values: Array;
   },
   saltNonce: string
 ) => {
@@ -153,7 +148,7 @@ export const buildTransaction = (
   iface: Interface,
   to: string,
   method: string,
-  params: any[],
+  params: [],
   value?: string,
 ) => {
   return {
@@ -190,7 +185,6 @@ export async function addMember(
 export async function deployRolesV2Modifier(
   provider: JsonRpcProvider,
   safeAddress: string,
-  chainId: number,
   args: RolesV2ModifierParams,
 ) {
   const { target, multisend } = args
@@ -202,7 +196,6 @@ export async function deployRolesV2Modifier(
         values: [safeAddress, safeAddress, target],
       },
       provider,
-      chainId,
       Date.now().toString(),
   )
 
@@ -241,13 +234,6 @@ export interface RolesV2ModifierParams {
   target: string
   multisend: string[]
 }
-
-interface Props {
-  address: `0x${string}`
-  roleKey: `0x${string}`
-  chainId: ChainId
-}
-
 
 const ROLES_MOD_QUERY = `
     query RolesMod($avatar: String) {
@@ -288,10 +274,6 @@ const ROLE_MOD_QUERY = `
     }
   }
 `
-
-const getRoleId = (address: `0x${string}`, roleKey: `0x${string}`) =>
-  `${address.toLowerCase()}-ROLE-${roleKey}`
-
 
 export const fetchRoleMod = async (roleMod) => {
   const { data } = await fetch("https://api.studio.thegraph.com/proxy/23167/zodiac-roles-arbitrum-one/v2.2.3", {

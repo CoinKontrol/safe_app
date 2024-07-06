@@ -1,11 +1,8 @@
 import { useState, useEffect } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 
 import useSafeAppsSDKWithProvider from "./hooks/useSafeAppsSDKWithProvider"
 
-import { Description, Field, Fieldset, Input, Label, Legend, Select, Textarea } from '@headlessui/react'
-import { ChevronDownIcon } from '@heroicons/react/20/solid'
+import { Description, Field, Fieldset, Input, Label, Legend } from '@headlessui/react'
 import clsx from 'clsx'
 
 import MultiSelect from './MultiSelect.tsx'
@@ -21,14 +18,12 @@ import {
     deployRolesV2Modifier, 
     addMember,
     RolesV2ModifierParams, 
-    fetchRole,
     fetchRolesMod,
     fetchRoleMod
 } from "./services"
 
 function App() {
-  const [count, setCount] = useState(0)
-  const { sdk, safe, connected, provider } = useSafeAppsSDKWithProvider()
+  const { sdk, safe, provider } = useSafeAppsSDKWithProvider()
 
   const [selectedOptions, setSelectedOptions] = useState([]);
   const [erc20Permissions, setErc20Permissions] = useState([]);
@@ -53,7 +48,7 @@ function App() {
       const roleMod_ = await fetchRolesMod(safe.safeAddress)
 
       if (roleMod_) {
-        let roleMod = await fetchRoleMod(roleMod_) 
+        const roleMod = await fetchRoleMod(roleMod_) 
 
         setRoleMod(roleMod)
         setRoles(roleMod.roles)
@@ -65,7 +60,7 @@ function App() {
         setParams({ ...params, target: safe.safeAddress })
         goFetchRolesMod()
     }
-  }, [safe])
+  }, [safe, params])
 
   const handleTokenApprovePermission = (option) => {
     const erc20Permissions = option.map((token) => {
@@ -112,7 +107,7 @@ function App() {
       body: JSON.stringify({ targets, annotations }),
     })
 
-    const json = (await res.json()) as any;
+    const json = (await res.json());
     const { hash } = json;
 
     if (!hash) {
