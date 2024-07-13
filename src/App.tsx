@@ -248,14 +248,6 @@ function App() {
       <div className="w-2/3 ml-8 mt-8 mr-8">
         <h2 className="text-4xl tracking-tight text-gray-900 sm:text-6xl">Coin<span className="font-bold">Kontrol</span></h2>
 
-        <button
-            type="button"
-            onClick={handleSiwe}
-            className="ml-4 rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-        >
-        Siwe
-        </button>
-
         <p className="mt-3 mb-3 pl-4 text-lg leading-8 text-gray-600 bg-gray-100 p-2 rounded-xl">
           Zodiac Mod: <strong>{roleMod.address}</strong>
         </p>
