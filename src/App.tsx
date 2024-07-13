@@ -1,20 +1,12 @@
 import { useState, useEffect } from 'react'
-
 import useSafeAppsSDKWithProvider from "./hooks/useSafeAppsSDKWithProvider"
-
 import { Description, Field, Fieldset, Input, Label, Legend } from '@headlessui/react'
 import clsx from 'clsx'
-
 import MultiSelect from './MultiSelect.tsx'
 import TokenListDropdown from './TokenListDropdown.tsx'
-
 import illustration from './assets/illustration.jpg'
-
-import { 
-    c, 
-    processPermissions, 
-    checkIntegrity
-} from "zodiac-roles-sdk";
+import { SiweMessage } from 'siwe';
+import { c, processPermissions, checkIntegrity } from "zodiac-roles-sdk";
 
 import { 
     deployRolesV2Modifier, 
@@ -25,7 +17,7 @@ import {
 } from "./services"
 
 function App() {
-  const { sdk, safe, connected, provider } = useSafeAppsSDKWithProvider()
+  const { sdk, safe, connected, eth, provider } = useSafeAppsSDKWithProvider()
 
   const [selectedOptions, setSelectedOptions] = useState([]);
   const [erc20Permissions, setErc20Permissions] = useState([]);
@@ -33,6 +25,9 @@ function App() {
   const [token1, setToken1] = useState({id: 1, address: "", name: "Select Token 1"});
   const [roleMod, setRoleMod] = useState(null);
   const [roles, setRoles] = useState(null);
+  const [messageHash, setMessageHash] = useState(null);
+  const [signature, setSignature] = useState(null);
+  const [member, setMember] = useState(null);
 
   const ZODIAC_ROLES_APP_PROXY = "https://cors-proxy-withered-surf-4552.fly.dev/https://roles.gnosisguild.org";
   const ZODIAC_ROLES_APP = "https://roles.gnosisguild.org";
@@ -59,6 +54,50 @@ function App() {
     }
   }, [safe])
 
+  const handleSiwe = async () => {
+    const settings = {
+      offChainSigning: true,
+    };
+
+    console.log("signer", await provider.getSigner())
+    
+    const currentSettings = await sdk.eth.setSafeSettings([settings]);
+
+    const scheme = window.location.protocol.slice(0, -1);
+    const domain = window.location.host;
+    const origin = window.location.origin;
+    const address = safe.safeAddress;
+    const statement = 'Sign in with Ethereum to the app.'
+
+    console.log("scheme", scheme)
+    console.log("domain", domain)
+    console.log("origin", origin)
+
+    const siweMessage = new SiweMessage({
+     scheme,
+     domain,
+     address,
+     statement,
+     uri: origin,
+     version: '1',
+     chainId: `${safe.chainId}`
+    });
+
+    console.log("siweMessage", siweMessage)
+
+    const preparedMessage = siweMessage.prepareMessage().replace(/^https:\/\//, '')
+
+    console.log("preparedMessage", preparedMessage)
+
+    window.addEventListener('message', async (event) => {
+        const { messageHash, signature } = event;
+        setMessageHash(messageHash);
+        setSignature(signature);
+    })
+
+    const hash = await sdk.txs.signMessage(preparedMessage);
+  }
+
   const handleTokenApprovePermission = (option) => {
     const erc20Permissions = option.map((token) => {
         return {
@@ -84,7 +123,7 @@ function App() {
     }
   }
 
-  const handleAddMember = async (roleKey, roleMod,  member) => {
+  const handleAddMember = async (roleKey, roleMod) => {
     try {
       const txs = await addMember(provider, roleMod, roleKey, member)
       await sdk.txs.send({ txs })
@@ -201,10 +240,10 @@ function App() {
 
               <h3 className="text-lg font-semibold mt-6">Members</h3>
               <p className="text-xs">Members are EOA or smart accounts that can execute the permissions associated with the role</p>
-              <input type="text" className="mt-2 mr-4 rounded-md bg-gray-200 px-3 py-2 text-xs font-semibold text-gray-600 shadow-sm" placeholder="0x..." />
+              <input onChange={(e) => setMember(e.target.value)} type="text" className="mt-2 mr-4 rounded-md bg-gray-200 px-3 py-2 text-xs font-semibold text-gray-600 shadow-sm" placeholder="0x..." />
               <button
                 type="button"
-                onClick={() => handleAddMember(role.key, roleMod.address, "0xFc0E7B814d59B10aeD6aD7b67c9B774CCA5Bb6c0")}
+                onClick={() => handleAddMember(role.key, roleMod.address, member)}
                 className="mt-2 rounded-md bg-indigo-600 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
               >Add member</button>
 
@@ -243,6 +282,15 @@ function App() {
             >
             Add Roles Modifier
             </button>
+
+
+            <button
+                type="button"
+                onClick={handleSiwe}
+                className="ml-4 rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+            >
+            Siwe
+            </button>
           
 
         </div>
@@ -257,6 +305,14 @@ function App() {
     <div className="flex p-8 bg-white">
       <div className="w-2/3 ml-8 mt-8 mr-8">
         <h2 className="text-4xl tracking-tight text-gray-900 sm:text-6xl">Coin<span className="font-bold">Kontrol</span></h2>
+
+        <button
+            type="button"
+            onClick={handleSiwe}
+            className="ml-4 rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+        >
+        Siwe
+        </button>
 
         <p className="mt-3 mb-3 pl-4 text-lg leading-8 text-gray-600 bg-gray-100 p-2 rounded-xl">
           Zodiac Mod: <strong>{roleMod.address}</strong>
