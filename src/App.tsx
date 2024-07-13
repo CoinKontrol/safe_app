@@ -5,19 +5,17 @@ import clsx from 'clsx'
 import MultiSelect from './MultiSelect.tsx'
 import TokenListDropdown from './TokenListDropdown.tsx'
 import illustration from './assets/illustration.jpg'
-import { SiweMessage } from 'siwe';
 import { c, processPermissions, checkIntegrity } from "zodiac-roles-sdk";
 
 import { 
     deployRolesV2Modifier, 
     addMember,
-    RolesV2ModifierParams, 
     fetchRolesMod,
     fetchRoleMod
 } from "./services"
 
 function App() {
-  const { sdk, safe, connected, eth, provider } = useSafeAppsSDKWithProvider()
+  const { sdk, safe, connected, provider } = useSafeAppsSDKWithProvider()
 
   const [selectedOptions, setSelectedOptions] = useState([]);
   const [erc20Permissions, setErc20Permissions] = useState([]);
@@ -25,7 +23,6 @@ function App() {
   const [token1, setToken1] = useState({id: 1, address: "", name: "Select Token 1"});
   const [roleMod, setRoleMod] = useState(null);
   const [roles, setRoles] = useState(null);
-  const [messageHash, setMessageHash] = useState(null);
   const [signature, setSignature] = useState(null);
   const [member, setMember] = useState(null);
 
@@ -53,50 +50,6 @@ function App() {
         goFetchRolesMod()
     }
   }, [safe])
-
-  const handleSiwe = async () => {
-    const settings = {
-      offChainSigning: true,
-    };
-
-    console.log("signer", await provider.getSigner())
-    
-    const currentSettings = await sdk.eth.setSafeSettings([settings]);
-
-    const scheme = window.location.protocol.slice(0, -1);
-    const domain = window.location.host;
-    const origin = window.location.origin;
-    const address = safe.safeAddress;
-    const statement = 'Sign in with Ethereum to the app.'
-
-    console.log("scheme", scheme)
-    console.log("domain", domain)
-    console.log("origin", origin)
-
-    const siweMessage = new SiweMessage({
-     scheme,
-     domain,
-     address,
-     statement,
-     uri: origin,
-     version: '1',
-     chainId: `${safe.chainId}`
-    });
-
-    console.log("siweMessage", siweMessage)
-
-    const preparedMessage = siweMessage.prepareMessage().replace(/^https:\/\//, '')
-
-    console.log("preparedMessage", preparedMessage)
-
-    window.addEventListener('message', async (event) => {
-        const { messageHash, signature } = event;
-        setMessageHash(messageHash);
-        setSignature(signature);
-    })
-
-    const hash = await sdk.txs.signMessage(preparedMessage);
-  }
 
   const handleTokenApprovePermission = (option) => {
     const erc20Permissions = option.map((token) => {

@@ -4,9 +4,9 @@ import { useSafeAppsSDK } from '@safe-global/safe-apps-react-sdk';
 import { ethers } from "ethers"
 
 const useSafeAppsSDKWithProvider = () => {
-  const { sdk, safe, eth, connected } = useSafeAppsSDK()
+  const { sdk, safe, connected } = useSafeAppsSDK()
   const provider = useMemo(() => new ethers.BrowserProvider(new SafeAppProvider(safe, sdk)), [sdk, safe]);
-  return { sdk, safe, provider, eth, connected }
+  return { sdk, safe, provider, connected }
 }
 
 export default useSafeAppsSDKWithProvider
