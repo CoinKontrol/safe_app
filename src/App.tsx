@@ -196,7 +196,7 @@ function App() {
               <input onChange={(e) => setMember(e.target.value)} type="text" className="mt-2 mr-4 rounded-md bg-gray-200 px-3 py-2 text-xs font-semibold text-gray-600 shadow-sm" placeholder="0x..." />
               <button
                 type="button"
-                onClick={() => handleAddMember(role.key, roleMod.address, member)}
+                onClick={() => handleAddMember(role.key, roleMod.address)}
                 className="mt-2 rounded-md bg-indigo-600 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
               >Add member</button>
 
@@ -235,17 +235,6 @@ function App() {
             >
             Add Roles Modifier
             </button>
-
-
-            <button
-                type="button"
-                onClick={handleSiwe}
-                className="ml-4 rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-            >
-            Siwe
-            </button>
-          
-
         </div>
         <div className="mt-8">
           <img src={illustration} alt="CoinKontrol" className="rounded-2xl" width={500}/>
