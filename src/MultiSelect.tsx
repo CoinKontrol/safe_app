@@ -29,7 +29,7 @@ export default function MultiSelect( { selectedOptions, setSelectedOptions, call
         isMultiple={true}
         isSearchable={true}
         onChange={handleSelect}
-        primaryColor="indigo"
+        primaryColor="indigo" as any
         options={options}
     />
 }
