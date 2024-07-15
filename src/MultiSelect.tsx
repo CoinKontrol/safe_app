@@ -25,10 +25,11 @@ export default function MultiSelect( { selectedOptions, setSelectedOptions, call
   }, [])
 
   return <Select
-                value={selected}
-                isMultiple={true}
-                isSearchable={true}
-                onChange={handleSelect}
-                options={options}
-            />
+        value={selected}
+        isMultiple={true}
+        isSearchable={true}
+        onChange={handleSelect}
+        primaryColor="indigo"
+        options={options}
+    />
 }
