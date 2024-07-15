@@ -165,7 +165,13 @@ function App() {
       targetAddress: COWSWAP_ORDER_SIGNER_ADDRESS as `0x${string}`,
       signature: "signOrder((address,address,address,uint256,uint256,uint32,bytes32,uint256,bytes32,bool,bytes32,bytes32),uint32,uint256)",
       condition: c.calldataMatches(
-        [{ receiver: c.avatar, sellToken: c.or(token0.address, token1.address),  buyToken: c.or(token1.address, token0.address) }],
+        [{ 
+            receiver: c.avatar, 
+            // @ts-ignore
+            sellToken: c.or(token0.address, token1.address),  
+            // @ts-ignore
+            buyToken: c.or(token1.address, token0.address) 
+        }],
         ['tuple(address sellToken, address buyToken, address receiver, uint256 sellAmount, uint256 buyAmount, uint32 validTo, bytes32 appData, uint256 feeAmount, bytes32 kind, bool partiallyFillable, bytes32 sellTokenBalance, bytes32 buyTokenBalance)']
       ),
       delegatecall: true,

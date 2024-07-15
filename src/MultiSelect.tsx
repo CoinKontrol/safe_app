@@ -26,7 +26,12 @@ export default function MultiSelect( { selectedOptions, setSelectedOptions, call
     setOptions(options)
   }, [])
 
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  return <Select value={selected} isMultiple={true} isSearchable={true} onChange={handleSelect} primaryColor={theme} options={options} />
+  return <Select 
+    value={selected} 
+    isMultiple={true} 
+    isSearchable={true} 
+    onChange={handleSelect} 
+    primaryColor={theme} 
+    options={options} 
+  />
 }
