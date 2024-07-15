@@ -1,5 +1,6 @@
 import { Label, Listbox, ListboxButton, ListboxOption, ListboxOptions } from '@headlessui/react'
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid'
+import Select from "react-tailwindcss-select";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
@@ -12,10 +13,13 @@ export default function TokenListDropdown({
     setSelected,
 }) {
 
-  //const [selected, setSelected] = useState(items[0])
+  const handleSelect = (option) => {
+    console.log("option",option)
+    setSelected({id: option.value, name: option.label, address: option.value})
+  }
 
   return (
-    <Listbox value={selected} onChange={setSelected}>
+    <Listbox value={selected} onChange={handleSelect}>
       {() => (
         <>
           <Label className="block text-sm font-medium leading-6 text-gray-900">{label_text}</Label>
@@ -33,7 +37,7 @@ export default function TokenListDropdown({
             >
               {items.map((person) => (
                 <ListboxOption
-                  key={person.id}
+                  key={person.label}
                   className={({ focus }) =>
                     classNames(
                       focus ? 'bg-indigo-600 text-white' : '',
@@ -46,7 +50,7 @@ export default function TokenListDropdown({
                   {({ selected, focus }) => (
                     <>
                       <span className={classNames(selected ? 'font-semibold' : 'font-normal', 'block truncate')}>
-                        {person.name}
+                        {person.label}
                       </span>
 
                       {selected ? (

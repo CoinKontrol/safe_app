@@ -36,6 +36,9 @@ function App() {
   const MULTISEND_CALLONLY_141 = "0x9641d764fc13c8B624c04430C7356C1C7C8102e2" // used in latest Safes
   const [params, setParams] = useState(null)
 
+  console.log("token0", token0)
+  console.log("token1", token1)
+
   useEffect(() => {
     async function goFetchRolesMod() {
       const roleMod_ = await fetchRolesMod(safe.safeAddress)
@@ -57,7 +60,7 @@ function App() {
   const handleTokenApprovePermission = (option) => {
     const erc20Permissions = option.map((token) => {
         return {
-          targetAddress: token.address as `0x${string}`,
+          targetAddress: token.value as `0x${string}`,
           signature: "approve(address,uint256)",
           condition: c.calldataMatches(
             [UNISWAP_NFT_ADDRESS],
@@ -68,7 +71,7 @@ function App() {
 
     const erc20CowSwapPermissions = option.map((token) => {
         return {
-          targetAddress: token.address as `0x${string}`,
+          targetAddress: token.value as `0x${string}`,
           signature: "approve(address,uint256)",
           condition: c.calldataMatches(
             [GPv2VAULT_RELAYER_ADDRESS],
@@ -103,14 +106,7 @@ function App() {
 
   const postPermissions = async (permissions) => {
     const awaitedPermissions = await Promise.all(permissions);
-
-    console.log("awaitedPermissions", awaitedPermissions)
-
     const { targets, annotations } = processPermissions(awaitedPermissions);
-
-    console.log("targets", targets)
-    console.log("annotations", annotations)
-
     checkIntegrity(targets);
   
     const res = await fetch(`${ZODIAC_ROLES_APP_PROXY}/api/permissions`, {

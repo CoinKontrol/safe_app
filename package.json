@@ -20,6 +20,7 @@
     "ethers": "^6.13.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-tailwindcss-select": "^1.8.5",
     "siwe": "^2.3.2",
     "viem": "^2.17.1",
     "vite-plugin-node-polyfills": "^0.22.0",
