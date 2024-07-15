@@ -28,6 +28,9 @@ function App() {
 
   const ZODIAC_ROLES_APP_PROXY = "https://cors-proxy-withered-surf-4552.fly.dev/https://roles.gnosisguild.org";
   const ZODIAC_ROLES_APP = "https://roles.gnosisguild.org";
+
+  const GPv2VAULT_RELAYER_ADDRESS = "0xC92E8bdf79f0507f65a392b0ab4667716BFE0110";
+  const COWSWAP_ORDER_SIGNER_ADDRESS = "0x23dA9AdE38E4477b23770DeD512fD37b12381FAB";
   const UNISWAP_NFT_ADDRESS = "0xC36442b4a4522E871399CD717aBDD847Ab11FE88"
   const MULTISEND_141 = "0x38869bf66a61cF6bDB996A6aE40D5853Fd43B526" // used in latest Safes
   const MULTISEND_CALLONLY_141 = "0x9641d764fc13c8B624c04430C7356C1C7C8102e2" // used in latest Safes
@@ -63,7 +66,20 @@ function App() {
         }
     })
 
-    setErc20Permissions(erc20Permissions)
+    const erc20CowSwapPermissions = option.map((token) => {
+        return {
+          targetAddress: token.address as `0x${string}`,
+          signature: "approve(address,uint256)",
+          condition: c.calldataMatches(
+            [GPv2VAULT_RELAYER_ADDRESS],
+            ["address", "uint256"]
+          )
+        }
+    })
+
+    const permissions = [...erc20Permissions, ...erc20CowSwapPermissions]
+
+    setErc20Permissions(permissions)
   }
 
   const handleAddRolesModifier = async () => {
@@ -87,7 +103,13 @@ function App() {
 
   const postPermissions = async (permissions) => {
     const awaitedPermissions = await Promise.all(permissions);
+
+    console.log("awaitedPermissions", awaitedPermissions)
+
     const { targets, annotations } = processPermissions(awaitedPermissions);
+
+    console.log("targets", targets)
+    console.log("annotations", annotations)
 
     checkIntegrity(targets);
   
@@ -134,7 +156,7 @@ function App() {
         ['tuple(uint256 tokenId, uint128 liquidity, uint256 amount0Min, uint256 amount1Min, uint256 deadline)']
       )
     }
-    const collect ={
+    const collect = {
       targetAddress: UNISWAP_NFT_ADDRESS as `0x${string}`,
       signature: "collect((uint256,address,uint128,uint128))",
       condition: c.calldataMatches(
@@ -143,13 +165,26 @@ function App() {
       )
     }
 
-    const permissions = [...erc20Permissions, collect, decreaseLiquidity, mint, increaseLiquidity]
+    const signOrder = {
+      targetAddress: COWSWAP_ORDER_SIGNER_ADDRESS as `0x${string}`,
+      signature: "signOrder((address,address,address,uint256,uint256,uint32,bytes32,uint256,bytes32,bool,bytes32,bytes32),uint32,uint256)",
+      condition: c.calldataMatches(
+        [{ receiver: c.avatar, sellToken: c.or(token0.address, token1.address),  buyToken: c.or(token1.address, token0.address) }],
+        ['tuple(address sellToken, address buyToken, address receiver, uint256 sellAmount, uint256 buyAmount, uint32 validTo, bytes32 appData, uint256 feeAmount, bytes32 kind, bool partiallyFillable, bytes32 sellTokenBalance, bytes32 buyTokenBalance)']
+      ),
+      delegatecall: true,
+    }
 
+    const permissions = [...erc20Permissions, collect, decreaseLiquidity, mint, increaseLiquidity, signOrder]
+    
     const hash = await postPermissions(permissions);
 
-    const modArg = `arb1:${roleMod}`;
+    const modArg = `arb1:${roleMod.address}`;
     const roleArg = "position_management";
     const diffUrl = `${ZODIAC_ROLES_APP}/${modArg}/roles/${roleArg}/diff/${hash}`;
+
+    const encodedAppUrl = encodeURIComponent(diffUrl);
+
     const chainPrefix = "arb1";
     const owner = safe.safeAddress;
     const safeUrl = `https://app.safe.global/apps/open?safe=${chainPrefix}:${owner}&appUrl=${encodeURIComponent(diffUrl)}`;
