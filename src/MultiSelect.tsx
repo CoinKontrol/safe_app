@@ -7,6 +7,8 @@ export default function MultiSelect( { selectedOptions, setSelectedOptions, call
   const [options, setOptions] = useState([]);
   const [selected, setSelected] = useState([]);
 
+  const theme = "indigo" as string
+
   const handleSelect = (option) => {
     setSelected(option)
     setSelectedOptions(option)
@@ -29,7 +31,7 @@ export default function MultiSelect( { selectedOptions, setSelectedOptions, call
         isMultiple={true}
         isSearchable={true}
         onChange={handleSelect}
-        primaryColor="indigo" as any
+        primaryColor={theme}
         options={options}
     />
 }
