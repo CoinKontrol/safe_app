@@ -26,6 +26,7 @@ export default function MultiSelect( { selectedOptions, setSelectedOptions, call
     setOptions(options)
   }, [])
 
+  // @ts-expect-error
   return <Select
         value={selected}
         isMultiple={true}
