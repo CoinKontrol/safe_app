@@ -71,21 +71,6 @@ function App() {
     }
   }, [safe])
 
-  const handleCowTokenApprovePermission = (option) => {
-    const erc20CowSwapPermissions = option.map((token) => {
-        return {
-          targetAddress: token.value as `0x${string}`,
-          signature: "approve(address,uint256)",
-          condition: c.calldataMatches(
-            [GPv2VAULT_RELAYER_ADDRESS],
-            ["address", "uint256"]
-          )
-        }
-    })
-
-    setCowErc20Permissions(erc20CowSwapPermissions)
-  }
-
   const handleTokenApprovePermission = (option) => {
     const erc20Permissions = option.map((token) => {
         return {
