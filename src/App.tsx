@@ -2,10 +2,15 @@ import { useState, useEffect } from 'react'
 import useSafeAppsSDKWithProvider from "./hooks/useSafeAppsSDKWithProvider"
 import { Description, Field, Fieldset, Input, Label, Legend } from '@headlessui/react'
 import clsx from 'clsx'
+
 import MultiSelect from './MultiSelect.tsx'
 import TokenListDropdown from './TokenListDropdown.tsx'
+import ToggleSwitch from './ToggleSwitch.tsx'
+import FeeDropDown from './FeeDropDown.tsx'
+
 import illustration from './assets/illustration.jpg'
 import { c, processPermissions, checkIntegrity } from "zodiac-roles-sdk";
+
 
 import { 
     deployRolesV2Modifier, 
@@ -18,6 +23,9 @@ function App() {
   const { sdk, safe, connected, provider } = useSafeAppsSDKWithProvider()
 
   const [selectedOptions, setSelectedOptions] = useState([]);
+  const [selectedCowOptions, setSelectedCowOptions] = useState([]);
+
+  const [editRole, setEditRole] = useState(false);
   const [erc20Permissions, setErc20Permissions] = useState([]);
   const [token0, setToken0] = useState({id: 0, address: "", name: "Select Token 0"});
   const [token1, setToken1] = useState({id: 1, address: "", name: "Select Token 1"});
@@ -25,6 +33,15 @@ function App() {
   const [roles, setRoles] = useState(null);
   const [signature, setSignature] = useState(null);
   const [member, setMember] = useState(null);
+  const [preset, setPreset] = useState(null);
+
+  const [mintFeeTier, setMintFeeTier] = useState({value: 500, name: "0.05%"});
+  const [mintEnabled, setMintEnabled] = useState(true);
+  const [ercApprovalEnabled, setErcApprovalEnabled] = useState(true);
+  const [collectEnabled, setCollectEnabled] = useState(true);
+  const [increaseLiquidityEnabled, setIncreaseLiquidityEnabled] = useState(true);
+  const [decreaseLiquidityEnabled, setDecreaseLiquidityEnabled] = useState(true);
+  const [swapEnabled, setSwapEnabled] = useState(true);
 
   const ZODIAC_ROLES_APP_PROXY = "https://cors-proxy-withered-surf-4552.fly.dev/https://roles.gnosisguild.org";
   const ZODIAC_ROLES_APP = "https://roles.gnosisguild.org";
@@ -35,9 +52,6 @@ function App() {
   const MULTISEND_141 = "0x38869bf66a61cF6bDB996A6aE40D5853Fd43B526" // used in latest Safes
   const MULTISEND_CALLONLY_141 = "0x9641d764fc13c8B624c04430C7356C1C7C8102e2" // used in latest Safes
   const [params, setParams] = useState(null)
-
-  console.log("token0", token0)
-  console.log("token1", token1)
 
   useEffect(() => {
     async function goFetchRolesMod() {
@@ -56,6 +70,21 @@ function App() {
         goFetchRolesMod()
     }
   }, [safe])
+
+  const handleCowTokenApprovePermission = (option) => {
+    const erc20CowSwapPermissions = option.map((token) => {
+        return {
+          targetAddress: token.value as `0x${string}`,
+          signature: "approve(address,uint256)",
+          condition: c.calldataMatches(
+            [GPv2VAULT_RELAYER_ADDRESS],
+            ["address", "uint256"]
+          )
+        }
+    })
+
+    setCowErc20Permissions(erc20CowSwapPermissions)
+  }
 
   const handleTokenApprovePermission = (option) => {
     const erc20Permissions = option.map((token) => {
@@ -88,7 +117,6 @@ function App() {
   const handleAddRolesModifier = async () => {
     try {
       const txs = await deployRolesV2Modifier(provider, safe.safeAddress, params)
-      console.log(txs)
       await sdk.txs.send({ txs })
     } catch (error) {
       console.log(error)
@@ -118,7 +146,6 @@ function App() {
     const { hash } = json;
 
     if (!hash) {
-      console.error(json);
       throw new Error("Failed to post permissions");
     }
 
@@ -130,7 +157,7 @@ function App() {
       targetAddress: UNISWAP_NFT_ADDRESS as `0x${string}`,
       signature: "mint((address,address,uint24,int24,int24,uint256,uint256,uint256,uint256,address,uint256))",
       condition: c.calldataMatches(
-        [ { token0: token0.address , token1: token1.address, fee: 500 } ],
+        [ { token0: token0.address , token1: token1.address, fee: mintFeeTier.value } ],
         ['tuple(address token0, address token1, uint24 fee, int24 tickLower, int24 tickUpper, uint256 amount0Desired, uint256 amount1Desired, uint256 amount0Min, uint256 amount1Min, address recipient, uint256 deadline)']
       )
     }
@@ -177,8 +204,32 @@ function App() {
       delegatecall: true,
     }
 
-    const permissions = [...erc20Permissions, collect, decreaseLiquidity, mint, increaseLiquidity, signOrder]
-    
+    let permissions = []
+
+    if (ercApprovalEnabled) {
+      permissions = [...erc20Permissions]
+    }
+
+    if (mintEnabled) {
+      permissions = [...permissions, mint]
+    }
+
+    if (collectEnabled) {
+      permissions = [...permissions, collect]
+    }
+
+    if (increaseLiquidityEnabled) {
+      permissions = [...permissions, increaseLiquidity]
+    }
+
+    if (decreaseLiquidityEnabled) {
+      permissions = [...permissions, decreaseLiquidity]
+    }
+
+    if (swapEnabled) {
+      permissions = [...permissions, signOrder]
+    }
+
     const hash = await postPermissions(permissions);
 
     const modArg = `arb1:${roleMod.address}`;
@@ -216,9 +267,10 @@ function App() {
 
             <button
                 type="button"
+                onClick={() => setEditRole(true)}
                 className="mt-6 rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
             >
-            Add Role
+            Edit Role
             </button>
 
           <h3 className="mt-6 text-xl tracking-tight text-gray-900 sm:text-3xl">Roles</h3>
@@ -295,14 +347,26 @@ function App() {
           After you create the preset you will be able to designate EOA or smart accounts as members of the role. The members
           are accounts that can execute the permissions associated with the role.
         </p>
+        
+       
+        <div 
+          className="bg-gray-50 border border-gray-200 p-4 rounded-lg mb-4">
+          <h3 className="font-semibold mb-2 text-xl">Collect and Compound Role</h3>
+          <p className="text-xs">Members can collect fees from the pool</p>
+          <p className="text-xs">Members can swap between the pool tokens to rebalance</p>
+          <p className="text-xs">Members can increse liquidity</p>
 
-        <h3 className="text-lg mb-4 font-bold">UniswapV3 Role</h3>
+          <p className="mt-4">You can customize this role by switching off the permissions you do not want.</p>
+        </div>
 
-        <Fieldset className="space-y-6 rounded-xl bg-gray-100 p-6 sm:p-10">
+        <Fieldset className={`relative space-y-6 rounded-xl bg-gray-100 p-6 sm:p-10 ${swapEnabled ? "" : " bg-gray-50 text-gray-300" }`}>
+          <div className="absolute top-5 right-5 flex items-center justify-end">
+              <ToggleSwitch enabled={swapEnabled} setEnabled={setSwapEnabled} />
+          </div>
           <Legend className="text-base/7 font-semibold">ERC20 Token Approval</Legend>
           <Field>
             <Label className="text-sm/6 font-medium">Tokens</Label>
-            <Description className="text-sm/6">Select the tokens you want to add to LP</Description>
+            <Description className="text-sm/6">Select two or more tokens you have in your pool</Description>
             <div className="relative">
               <MultiSelect 
                 selectedOptions={selectedOptions} 
@@ -313,7 +377,25 @@ function App() {
           </Field>
         </Fieldset>
 
-        <Fieldset className="space-y-6 rounded-xl bg-gray-100 p-6 sm:p-10 mt-4">
+        <Fieldset className={`relative space-y-6 rounded-xl bg-gray-100 p-6 sm:p-10 mt-4 ${ercApprovalEnabled ? "" : " bg-gray-50 text-gray-300" }`}>
+          <div className="absolute top-5 right-5 flex items-center justify-end">
+              <ToggleSwitch enabled={ercApprovalEnabled} setEnabled={setErcApprovalEnabled} />
+          </div>
+          <Legend className="text-base/7 font-semibold">CowSwap</Legend>
+          <p className="text-xs">This is required to rebalance the token pair before increasing liquidity. These are the same tokens you select in the ERC 20 approval.</p>
+          <div className="flex">
+            {selectedOptions && selectedOptions.map((token) => (
+              <div key={token.label} className="mr-4 text-xs bg-zinc-200 border border-zinc-300 p-2 rounded-lg">
+                {token.label}
+              </div>
+            ))}
+          </div>
+        </Fieldset>
+
+        <Fieldset className={`relative space-y-6 rounded-xl bg-gray-100 p-6 sm:p-10 mt-4 ${mintEnabled ? "" : " bg-gray-50 text-gray-300"}`}>
+          <div className="flex items-center justify-end absolute top-5 right-5">
+              <ToggleSwitch enabled={mintEnabled} setEnabled={setMintEnabled} />
+          </div>
           <Legend className="text-base/7 font-semibold">mint</Legend>
 
           {selectedOptions && selectedOptions.length > 0 &&<Field>
@@ -335,13 +417,7 @@ function App() {
           </Field>}
 
           <Field>
-            <Label className="text-sm/6 font-medium">Fee</Label>
-            <Input
-              className={clsx(
-                'mt-3 block w-full rounded-lg border-none bg-white py-1.5 px-3 text-sm/6',
-                'focus:outline-none data-[focus]:outline-2 data-[focus]:-outline-offset-2 data-[focus]:outline-white/25'
-              )}
-            />
+            <FeeDropDown selected={mintFeeTier} setSelected={setMintFeeTier} />
           </Field>
 
           <Field>
@@ -356,9 +432,11 @@ function App() {
           </Field>
         </Fieldset>
 
-        <Fieldset className="space-y-6 rounded-xl bg-gray-100 p-6 sm:p-10 mt-4">
+        <Fieldset className={`relative space-y-6 rounded-xl bg-gray-100 p-6 sm:p-10 mt-4 ${collectEnabled ? "" : " bg-gray-50 text-gray-300" }`}>
+          <div className="flex items-center justify-end absolute top-5 right-5">
+            <ToggleSwitch enabled={collectEnabled} setEnabled={setCollectEnabled} />
+          </div>
           <Legend className="text-base/7 font-semibold">collect</Legend>
-
           <Field>
             <Label className="text-sm/6 font-medium">Recipient</Label>
             <Input
@@ -371,7 +449,10 @@ function App() {
           </Field>
         </Fieldset>
 
-        <Fieldset className="space-y-6 rounded-xl bg-gray-100 p-6 sm:p-10 mt-4">
+        <Fieldset className={`relative space-y-6 rounded-xl bg-gray-100 p-6 sm:p-10 mt-4 ${increaseLiquidityEnabled ? "" : " bg-gray-50 text-gray-300" }`}>
+          <div className="flex items-center justify-end absolute top-5 right-5">
+            <ToggleSwitch enabled={increaseLiquidityEnabled} setEnabled={setIncreaseLiquidityEnabled} />
+          </div>
           <Legend className="text-base/7 font-semibold">increaseLiquidity</Legend>
 
           <Field>
@@ -386,7 +467,10 @@ function App() {
           </Field>
         </Fieldset>
 
-        <Fieldset className="space-y-6 rounded-xl bg-gray-100 p-6 sm:p-10 mt-4">
+        <Fieldset className={`relative space-y-6 rounded-xl bg-gray-100 p-6 sm:p-10 mt-4 ${decreaseLiquidityEnabled ? "" : " bg-gray-50 text-gray-300" }`}>
+          <div className="flex items-center justify-end absolute top-5 right-5">
+            <ToggleSwitch enabled={decreaseLiquidityEnabled} setEnabled={setDecreaseLiquidityEnabled} />
+          </div>
           <Legend className="text-base/7 font-semibold">decreaseLiquidity</Legend>
 
           <Field>
