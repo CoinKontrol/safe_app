@@ -240,7 +240,7 @@ function App() {
     )
   }
 
-  if (roles && roles.length > 0) {
+  if (roles && roles.length > 0 && !editRole) {
     return (
       <div className="flex p-8 bg-white">
         <div className="w-2/3 mr-8 ml-8 mt-8">
@@ -471,6 +471,14 @@ function App() {
         </Fieldset>
 
         <div className="mt-8 text-right">
+            <button
+                type="button"
+                onClick={() => setEditRole(false)}
+                className="rounded-md bg-zinc-100 mr-2 px-3.5 py-2.5 text-sm font-semibold text-zinc-800 shadow-sm hover:bg-zinc-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-600"
+            >
+            Cancel
+            </button>
+
             <button
                 type="button"
                 onClick={handlePermissions}
