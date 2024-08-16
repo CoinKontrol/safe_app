@@ -108,8 +108,6 @@ const getDeployAndSetupTx = async (
     [encodedInitParams]
   );
 
-  console.log("moduleSetupData", moduleSetupData)
-
   const expectedModuleAddress = await calculateProxyAddress(
     moduleFactory,
     await moduleMastercopy.getAddress(),
@@ -117,14 +115,10 @@ const getDeployAndSetupTx = async (
     saltNonce
   );
 
-
-
   const deployData = moduleFactory.interface.encodeFunctionData(
     "deployModule",
     [await moduleMastercopy.getAddress(), moduleSetupData, saltNonce]
   );
-
-  console.log("deployData", deployData)
 
   const transaction = {
     data: deployData,

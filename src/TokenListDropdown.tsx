@@ -14,7 +14,6 @@ export default function TokenListDropdown({
 }) {
 
   const handleSelect = (option) => {
-    console.log("option",option)
     setSelected({id: option.value, name: option.label, address: option.value})
   }
 

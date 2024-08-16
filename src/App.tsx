@@ -51,6 +51,13 @@ function App() {
   const UNISWAP_NFT_ADDRESS = "0xC36442b4a4522E871399CD717aBDD847Ab11FE88"
   const MULTISEND_141 = "0x38869bf66a61cF6bDB996A6aE40D5853Fd43B526" // used in latest Safes
   const MULTISEND_CALLONLY_141 = "0x9641d764fc13c8B624c04430C7356C1C7C8102e2" // used in latest Safes
+
+  const weth_addresses = [
+      "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1", // arb
+      "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", // mainnet
+      "0x4200000000000000000000000000000000000006" // op
+  ]
+
   const [params, setParams] = useState(null)
 
   useEffect(() => {
@@ -70,6 +77,15 @@ function App() {
         goFetchRolesMod()
     }
   }, [safe])
+
+
+ const oneOf = <T>(values: readonly T[]) => {
+   if (values.length === 0) {
+     throw new Error("`oneOf` values must not be empty")
+   }
+ 
+   return values.length === 1 ? values[0] : c.or(...(values as [T, T, ...T[]]))
+ }
 
   const handleTokenApprovePermission = (option) => {
     const erc20Permissions = option.map((token) => {
@@ -173,20 +189,57 @@ function App() {
       )
     }
 
-    const signOrder = {
-      targetAddress: COWSWAP_ORDER_SIGNER_ADDRESS as `0x${string}`,
-      signature: "signOrder((address,address,address,uint256,uint256,uint32,bytes32,uint256,bytes32,bool,bytes32,bytes32),uint32,uint256)",
-      condition: c.calldataMatches(
-        [{ 
-            receiver: c.avatar, 
-            // @ts-ignore
-            sellToken: c.or(token0.address, token1.address),  
-            // @ts-ignore
-            buyToken: c.or(token1.address, token0.address) 
-        }],
-        ['tuple(address sellToken, address buyToken, address receiver, uint256 sellAmount, uint256 buyAmount, uint32 validTo, bytes32 appData, uint256 feeAmount, bytes32 kind, bool partiallyFillable, bytes32 sellTokenBalance, bytes32 buyTokenBalance)']
-      ),
-      delegatecall: true,
+    const refundETH = {
+        targetAddress: UNISWAP_NFT_ADDRESS as `0x${string}`,
+        signature: "refundETH()",
+        send: true
+    }
+
+    const sweetToken = {
+        targetAddress: UNISWAP_NFT_ADDRESS as `0x${string}`,
+        signature: "sweetToken(address,uint256,address)",
+        condition: c.calldataMatches(
+            [undefined, undefined, c.avatar],
+            ["address", "uint256", "address"]
+        )
+    }
+
+    let signOrder
+
+    if (mintEnabled) {
+        signOrder = {
+          targetAddress: COWSWAP_ORDER_SIGNER_ADDRESS as `0x${string}`,
+          signature: "signOrder((address,address,address,uint256,uint256,uint32,bytes32,uint256,bytes32,bool,bytes32,bytes32),uint32,uint256)",
+          condition: c.calldataMatches(
+            [{ 
+                receiver: c.avatar, 
+                // @ts-ignore
+                sellToken: c.or(token0.address, token1.address),  
+                // @ts-ignore
+                buyToken: c.or(token1.address, token0.address) 
+            }],
+            ['tuple(address sellToken, address buyToken, address receiver, uint256 sellAmount, uint256 buyAmount, uint32 validTo, bytes32 appData, uint256 feeAmount, bytes32 kind, bool partiallyFillable, bytes32 sellTokenBalance, bytes32 buyTokenBalance)']
+          ),
+          delegatecall: true,
+        }
+    } else {
+        const selectedTokens = [];
+        selectedOptions.map((token) => selectedTokens.push(token.value));
+        signOrder = {
+          targetAddress: COWSWAP_ORDER_SIGNER_ADDRESS as `0x${string}`,
+          signature: "signOrder((address,address,address,uint256,uint256,uint32,bytes32,uint256,bytes32,bool,bytes32,bytes32),uint32,uint256)",
+          condition: c.calldataMatches(
+            [{ 
+                receiver: c.avatar, 
+                // @ts-ignore
+                sellToken: oneOf(selectedTokens),
+                // @ts-ignore
+                buyToken: oneOf(selectedTokens)
+            }],
+            ['tuple(address sellToken, address buyToken, address receiver, uint256 sellAmount, uint256 buyAmount, uint32 validTo, bytes32 appData, uint256 feeAmount, bytes32 kind, bool partiallyFillable, bytes32 sellTokenBalance, bytes32 buyTokenBalance)']
+          ),
+          delegatecall: true,
+        }
     }
 
     let permissions = []
@@ -195,8 +248,22 @@ function App() {
       permissions = [...erc20Permissions]
     }
 
+    let wethPresent = false;
+
+    selectedOptions.forEach((token) => {
+      console.log("token", token.value)
+      console.log("weth_addresses", weth_addresses)
+      if (weth_addresses.includes(token.value)) {
+          wethPresent = true;
+      }
+    })
+
     if (mintEnabled) {
       permissions = [...permissions, mint]
+    }
+
+    if (wethPresent) {
+      permissions = [...permissions, refundETH, sweetToken]
     }
 
     if (collectEnabled) {
@@ -214,6 +281,8 @@ function App() {
     if (swapEnabled) {
       permissions = [...permissions, signOrder]
     }
+
+    console.log("permissions", permissions)
 
     const hash = await postPermissions(permissions);
 
